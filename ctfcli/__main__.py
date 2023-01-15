@@ -10,11 +10,11 @@ import fire
 
 from ctfcli.cli.challenges import Challenge
 from ctfcli.cli.config import Config
+from ctfcli.cli.pages import Pages
 from ctfcli.cli.plugins import Plugins
 from ctfcli.cli.templates import Templates
-from ctfcli.cli.pages import Pages
-from ctfcli.utils.plugins import get_plugin_dir
 from ctfcli.utils.git import check_if_dir_is_inside_git_repo
+from ctfcli.utils.plugins import get_plugin_dir
 
 
 class CTFCLI(object):

@@ -14,7 +14,9 @@ from ctfcli.utils.challenge import (
     load_challenge,
     load_installed_challenge,
     load_installed_challenges,
+    pull_challenge,
     sync_challenge,
+    verify_challenge,
 )
 from ctfcli.utils.config import (
     get_base_path,
@@ -23,9 +25,9 @@ from ctfcli.utils.config import (
     load_config,
 )
 from ctfcli.utils.deploy import DEPLOY_HANDLERS
+from ctfcli.utils.git import get_git_repo_head_branch
 from ctfcli.utils.spec import CHALLENGE_SPEC_DOCS, blank_challenge_spec
 from ctfcli.utils.templates import get_template_dir
-from ctfcli.utils.git import get_git_repo_head_branch
 
 
 class Challenge(object):
@@ -93,7 +95,8 @@ class Challenge(object):
                 config.write(f)
 
             subprocess.call(
-                ["git", "add", ".ctf/config"], cwd=get_project_path(),
+                ["git", "add", ".ctf/config"],
+                cwd=get_project_path(),
             )
             subprocess.call(
                 ["git", "commit", "-m", f"Added {str(challenge_path)}"],
@@ -335,11 +338,13 @@ class Challenge(object):
 
         if status:
             click.secho(
-                f"Challenge deployed at {domain}:{port}", fg="green",
+                f"Challenge deployed at {domain}:{port}",
+                fg="green",
             )
         else:
             click.secho(
-                f"An error occured during deployment", fg="red",
+                f"An error occured during deployment",
+                fg="red",
             )
 
     def push(self, challenge=None):
@@ -388,7 +393,8 @@ class Challenge(object):
                 break
         else:
             click.secho(
-                f'Couldn\'t find challenge {c["name"]} on CTFd', fg="red",
+                f'Couldn\'t find challenge {c["name"]} on CTFd',
+                fg="red",
             )
             return
 
@@ -406,11 +412,83 @@ class Challenge(object):
 
         if rcode != 0:
             click.secho(
-                f"Healcheck failed", fg="red",
+                f"Healcheck failed",
+                fg="red",
             )
             sys.exit(1)
         else:
             click.secho(
-                f"Success", fg="green",
+                f"Success",
+                fg="green",
             )
             sys.exit(0)
+
+    def verify(
+        self, challenge=None, ignore=(), verify_files=False, verify_defaults=False
+    ):
+        if isinstance(ignore, str):
+            ignore = (ignore,)
+
+        if challenge is None:
+            # Get all challenges if not specifying a challenge
+            config = load_config()
+            challenges = dict(config["challenges"]).keys()
+        else:
+            challenges = [challenge]
+
+        for challenge in challenges:
+            path = Path(challenge)
+
+            if path.name.endswith(".yml") is False:
+                path = path / "challenge.yml"
+
+            click.secho(f"Found {path}")
+            challenge = load_challenge(path)
+            click.secho(f'Loaded {challenge["name"]}', fg="yellow")
+
+            click.secho(f'Verifying {challenge["name"]}', fg="yellow")
+            verify_challenge(
+                challenge=challenge,
+                ignore=ignore,
+                verify_files=verify_files,
+                verify_defaults=verify_defaults,
+            )
+            click.secho("Success!", fg="green")
+
+    def pull(
+        self,
+        challenge=None,
+        ignore=(),
+        update_files=False,
+        create_files=False,
+        create_defaults=False,
+    ):
+        if isinstance(ignore, str):
+            ignore = (ignore,)
+
+        if challenge is None:
+            # Get all challenges if not specifying a challenge
+            config = load_config()
+            challenges = dict(config["challenges"]).keys()
+        else:
+            challenges = [challenge]
+
+        for challenge in challenges:
+            path = Path(challenge)
+
+            if path.name.endswith(".yml") is False:
+                path = path / "challenge.yml"
+
+            click.secho(f"Found {path}")
+            challenge = load_challenge(path)
+            click.secho(f'Loaded {challenge["name"]}', fg="yellow")
+
+            click.secho(f'Verifying {challenge["name"]}', fg="yellow")
+            pull_challenge(
+                challenge=challenge,
+                ignore=ignore,
+                update_files=update_files,
+                create_files=create_files,
+                create_defaults=create_defaults,
+            )
+            click.secho("Success!", fg="green")
