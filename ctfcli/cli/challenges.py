@@ -8,12 +8,22 @@ import click
 import yaml
 from cookiecutter.main import cookiecutter
 
-from ctfcli.utils.challenge import (create_challenge, lint_challenge,
-                                    load_challenge, load_installed_challenge,
-                                    load_installed_challenges, pull_challenge,
-                                    sync_challenge, verify_challenge)
-from ctfcli.utils.config import (get_base_path, get_config_path,
-                                 get_project_path, load_config)
+from ctfcli.utils.challenge import (
+    create_challenge,
+    lint_challenge,
+    load_challenge,
+    load_installed_challenge,
+    load_installed_challenges,
+    pull_challenge,
+    sync_challenge,
+    verify_challenge,
+)
+from ctfcli.utils.config import (
+    get_base_path,
+    get_config_path,
+    get_project_path,
+    load_config,
+)
 from ctfcli.utils.deploy import DEPLOY_HANDLERS
 from ctfcli.utils.git import get_git_repo_head_branch
 from ctfcli.utils.spec import CHALLENGE_SPEC_DOCS, blank_challenge_spec
@@ -50,12 +60,10 @@ class Challenge(object):
 
         if repo.endswith(".git"):
             # Get relative path from project root to current directory
-            challenge_path = Path(os.path.relpath(
-                os.getcwd(), get_project_path()))
+            challenge_path = Path(os.path.relpath(os.getcwd(), get_project_path()))
 
             # Get new directory that will add the git subtree
-            base_repo_path = Path(os.path.basename(
-                repo).rsplit(".", maxsplit=1)[0])
+            base_repo_path = Path(os.path.basename(repo).rsplit(".", maxsplit=1)[0])
 
             # Join targets
             challenge_path = challenge_path / base_repo_path
@@ -87,7 +95,8 @@ class Challenge(object):
                 config.write(f)
 
             subprocess.call(
-                ["git", "add", ".ctf/config"], cwd=get_project_path(),
+                ["git", "add", ".ctf/config"],
+                cwd=get_project_path(),
             )
             subprocess.call(
                 ["git", "commit", "-m", f"Added {str(challenge_path)}"],
@@ -247,8 +256,7 @@ class Challenge(object):
             required = fields.pop("required", False)
             if required is False:
                 try:
-                    ask = click.confirm(
-                        f"Would you like to add the {k} field?")
+                    ask = click.confirm(f"Would you like to add the {k} field?")
                     if ask is False:
                         continue
                 except click.Abort:
@@ -302,8 +310,7 @@ class Challenge(object):
 
         challenge = load_challenge(path)
         image = challenge.get("image")
-        target_host = host or challenge.get(
-            "host") or input("Target host URI: ")
+        target_host = host or challenge.get("host") or input("Target host URI: ")
         if image is None:
             click.secho(
                 "This challenge can't be deployed because it doesn't have an associated image",
@@ -331,11 +338,13 @@ class Challenge(object):
 
         if status:
             click.secho(
-                f"Challenge deployed at {domain}:{port}", fg="green",
+                f"Challenge deployed at {domain}:{port}",
+                fg="green",
             )
         else:
             click.secho(
-                f"An error occured during deployment", fg="red",
+                f"An error occured during deployment",
+                fg="red",
             )
 
     def push(self, challenge=None):
@@ -343,8 +352,7 @@ class Challenge(object):
         challenges = dict(config["challenges"])
         if challenge is None:
             # Get relative path from project root to current directory
-            challenge_path = Path(os.path.relpath(
-                os.getcwd(), get_project_path()))
+            challenge_path = Path(os.path.relpath(os.getcwd(), get_project_path()))
             challenge = str(challenge_path)
 
         try:
@@ -373,8 +381,7 @@ class Challenge(object):
         try:
             healthcheck = challenge["healthcheck"]
         except KeyError:
-            click.secho(
-                f'{challenge["name"]} missing healthcheck parameter', fg="red")
+            click.secho(f'{challenge["name"]} missing healthcheck parameter', fg="red")
             return
 
         # Get challenges installed from CTFd and try to find our challenge
@@ -386,7 +393,8 @@ class Challenge(object):
                 break
         else:
             click.secho(
-                f'Couldn\'t find challenge {c["name"]} on CTFd', fg="red",
+                f'Couldn\'t find challenge {c["name"]} on CTFd',
+                fg="red",
             )
             return
 
@@ -404,16 +412,20 @@ class Challenge(object):
 
         if rcode != 0:
             click.secho(
-                f"Healcheck failed", fg="red",
+                f"Healcheck failed",
+                fg="red",
             )
             sys.exit(1)
         else:
             click.secho(
-                f"Success", fg="green",
+                f"Success",
+                fg="green",
             )
             sys.exit(0)
 
-    def verify(self, challenge=None, ignore=(), verify_files=False, verify_defaults=False):
+    def verify(
+        self, challenge=None, ignore=(), verify_files=False, verify_defaults=False
+    ):
         if isinstance(ignore, str):
             ignore = (ignore,)
 
@@ -435,11 +447,22 @@ class Challenge(object):
             click.secho(f'Loaded {challenge["name"]}', fg="yellow")
 
             click.secho(f'Verifying {challenge["name"]}', fg="yellow")
-            verify_challenge(challenge=challenge, ignore=ignore,
-                             verify_files=verify_files, verify_defaults=verify_defaults)
+            verify_challenge(
+                challenge=challenge,
+                ignore=ignore,
+                verify_files=verify_files,
+                verify_defaults=verify_defaults,
+            )
             click.secho("Success!", fg="green")
 
-    def pull(self, challenge=None, ignore=(), update_files=False, create_files=False, create_defaults=False):
+    def pull(
+        self,
+        challenge=None,
+        ignore=(),
+        update_files=False,
+        create_files=False,
+        create_defaults=False,
+    ):
         if isinstance(ignore, str):
             ignore = (ignore,)
 
@@ -461,6 +484,11 @@ class Challenge(object):
             click.secho(f'Loaded {challenge["name"]}', fg="yellow")
 
             click.secho(f'Verifying {challenge["name"]}', fg="yellow")
-            pull_challenge(challenge=challenge, ignore=ignore, update_files=update_files,
-                           create_files=create_files, create_defaults=create_defaults)
+            pull_challenge(
+                challenge=challenge,
+                ignore=ignore,
+                update_files=update_files,
+                create_files=create_files,
+                create_defaults=create_defaults,
+            )
             click.secho("Success!", fg="green")

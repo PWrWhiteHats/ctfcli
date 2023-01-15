@@ -5,8 +5,12 @@ import click
 import frontmatter
 
 from ctfcli.utils.config import load_config
-from ctfcli.utils.pages import (get_current_pages, get_existing_page,
-                                install_page, sync_page)
+from ctfcli.utils.pages import (
+    get_current_pages,
+    get_existing_page,
+    install_page,
+    sync_page,
+)
 
 
 class Pages(object):
