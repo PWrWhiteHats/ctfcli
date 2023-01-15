@@ -1,7 +1,7 @@
+import filecmp
+import subprocess
 from collections import OrderedDict
 from pathlib import Path
-import subprocess
-import filecmp
 
 import click
 import yaml

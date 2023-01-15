@@ -8,26 +8,16 @@ import click
 import yaml
 from cookiecutter.main import cookiecutter
 
-from ctfcli.utils.challenge import (
-    create_challenge,
-    lint_challenge,
-    load_challenge,
-    load_installed_challenge,
-    load_installed_challenges,
-    sync_challenge,
-    verify_challenge,
-    pull_challenge
-)
-from ctfcli.utils.config import (
-    get_base_path,
-    get_config_path,
-    get_project_path,
-    load_config,
-)
+from ctfcli.utils.challenge import (create_challenge, lint_challenge,
+                                    load_challenge, load_installed_challenge,
+                                    load_installed_challenges, pull_challenge,
+                                    sync_challenge, verify_challenge)
+from ctfcli.utils.config import (get_base_path, get_config_path,
+                                 get_project_path, load_config)
 from ctfcli.utils.deploy import DEPLOY_HANDLERS
+from ctfcli.utils.git import get_git_repo_head_branch
 from ctfcli.utils.spec import CHALLENGE_SPEC_DOCS, blank_challenge_spec
 from ctfcli.utils.templates import get_template_dir
-from ctfcli.utils.git import get_git_repo_head_branch
 
 
 class Challenge(object):

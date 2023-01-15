@@ -3,9 +3,9 @@ import os
 import re
 
 try:
-    from setuptools import setup, find_packages
+    from setuptools import find_packages, setup
 except ImportError:
-    from distutils.core import setup, find_packages
+    from distutils.core import find_packages, setup
 
 
 with open("ctfcli/__init__.py") as f:
