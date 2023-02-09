@@ -1,0 +1,6 @@
+- [] Templates for challenges basing on containers
+- [] Easy way to install tool locally
+- [] Implement plugins as in CTFd https://github.com/CTFd/CTFd/blob/master/CTFd/plugins/__init__.py so they can use internal methods from ctfcli
+- [] Implement plugins so they can be stored in the repository first and then in user_dir (same as in CTFd)
+- [] Cleanup repository from ctfcli garbage
+- [] Implement syncing remote changes with local files (there is a PR in an official repository but it doesn;t really work properly)
