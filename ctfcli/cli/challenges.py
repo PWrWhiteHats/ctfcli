@@ -24,7 +24,7 @@ from ctfcli.utils.config import (
 )
 from ctfcli.utils.deploy import DEPLOY_HANDLERS
 from ctfcli.utils.spec import CHALLENGE_SPEC_DOCS, blank_challenge_spec
-from ctfcli.utils.templates import get_template_dir
+from ctfcli.utils.templates import get_template_dir, get_challenge_file_yaml
 from ctfcli.utils.git import get_git_repo_head_branch
 
 
@@ -150,7 +150,7 @@ class Challenge(object):
             path = Path(challenge)
 
             if path.name.endswith(".yml") is False:
-                path = path / "challenge.yml"
+                path = path / get_challenge_file_yaml()
 
             click.secho(f"Found {path}")
             challenge = load_challenge(path)
@@ -190,7 +190,7 @@ class Challenge(object):
             path = Path(challenge)
 
             if path.name.endswith(".yml") is False:
-                path = path / "challenge.yml"
+                path = path / get_challenge_file_yaml()
 
             click.secho(f"Found {path}")
             challenge = load_challenge(path)
@@ -280,10 +280,10 @@ class Challenge(object):
                 except click.Abort:
                     click.echo("\n")
 
-        with open(path / "challenge.yml", "w+") as f:
+        with open(path / get_challenge_file_yaml(), "w+") as f:
             yaml.dump(spec, stream=f, default_flow_style=False, sort_keys=False)
 
-        print("challenge.yml written to", path / "challenge.yml")
+        print(f"{get_challenge_file_yaml()} written to", path / get_challenge_file_yaml())
 
     def lint(self, challenge=None):
         if challenge is None:
@@ -292,7 +292,7 @@ class Challenge(object):
         path = Path(challenge)
 
         if path.name.endswith(".yml") is False:
-            path = path / "challenge.yml"
+            path = path / get_challenge_file_yaml()
 
         lint_challenge(path)
 
@@ -303,7 +303,7 @@ class Challenge(object):
         path = Path(challenge)
 
         if path.name.endswith(".yml") is False:
-            path = path / "challenge.yml"
+            path = path / get_challenge_file_yaml()
 
         challenge = load_challenge(path)
         image = challenge.get("image")
@@ -369,7 +369,7 @@ class Challenge(object):
         # challenge_path = challenges[challenge]
         path = Path(challenge)
         if path.name.endswith(".yml") is False:
-            path = path / "challenge.yml"
+            path = path / get_challenge_file_yaml()
 
         challenge = load_challenge(path)
         click.secho(f'Loaded {challenge["name"]}', fg="yellow")

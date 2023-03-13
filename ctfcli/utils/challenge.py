@@ -7,6 +7,8 @@ import yaml
 from .config import generate_session
 from .tools import strings
 
+from ctfcli.utils.templates import get_challenge_file_yaml
+
 
 class Yaml(dict):
     def __init__(self, data, file_path=None):
@@ -20,7 +22,7 @@ def load_challenge(path):
         with open(path) as f:
             return Yaml(data=yaml.safe_load(f.read()), file_path=path)
     except FileNotFoundError:
-        click.secho(f"No challenge.yml was found in {path}", fg="red")
+        click.secho(f"No {get_challenge_file_yaml()} was found in {path}", fg="red")
         return
 
 
@@ -337,7 +339,7 @@ def lint_challenge(path):
     try:
         challenge = load_challenge(path)
     except yaml.YAMLError as e:
-        click.secho(f"Error parsing challenge.yml: {e}", fg="red")
+        click.secho(f"Error parsing {get_challenge_file_yaml()}: {e}", fg="red")
         exit(1)
 
     required_fields = ["name", "author", "category", "description", "value"]

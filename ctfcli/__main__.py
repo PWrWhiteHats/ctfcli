@@ -15,6 +15,7 @@ from ctfcli.cli.plugins import Plugins
 from ctfcli.cli.templates import Templates
 from ctfcli.utils.git import check_if_dir_is_inside_git_repo
 from ctfcli.utils.plugins import get_plugin_dir
+from ctfcli.plugins import init_plugins
 
 
 class CTFCLI(object):
@@ -94,14 +95,15 @@ COMMANDS = {
 
 def main():
     # Load plugins
-    plugin_dir = get_plugin_dir()
-    sys.path.insert(0, plugin_dir)
-    for plugin in sorted(os.listdir(plugin_dir)):
-        plugin_path = os.path.join(plugin_dir, plugin, "__init__.py")
-        print("Loading", plugin_path, "as", plugin)
-        loaded = importlib.import_module(plugin)
-        loaded.load(COMMANDS)
-    sys.path.remove(plugin_dir)
+    # plugin_dir = get_plugin_dir()
+    # sys.path.insert(0, plugin_dir)
+    # for plugin in sorted(os.listdir(plugin_dir)):
+    #     plugin_path = os.path.join(plugin_dir, plugin, "__init__.py")
+    #     print("Loading", plugin_path, "as", plugin)
+    #     loaded = importlib.import_module(plugin)
+    #     loaded.load(COMMANDS)
+    # sys.path.remove(plugin_dir)
+    init_plugins(commands=COMMANDS)
 
     # Load CLI
     fire.Fire(CTFCLI)

@@ -5,6 +5,7 @@ import subprocess
 import click
 
 from ctfcli.utils.plugins import get_plugin_dir
+from ctfcli.plugins import get_plugin_names
 
 
 class Plugins(object):
@@ -33,8 +34,9 @@ class Plugins(object):
         shutil.rmtree(plugin_dir)
 
     def list(self):
-        for plugin in sorted(os.listdir(get_plugin_dir())):
-            print(plugin)
+        for plugin in get_plugin_names():
+            if '__init__.py' in os.path.join(get_plugin_dir(), plugin):
+                print(plugin)
 
     def dir(self):
         print(get_plugin_dir())

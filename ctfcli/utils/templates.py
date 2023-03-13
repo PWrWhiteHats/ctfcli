@@ -14,3 +14,6 @@ def get_template_dir():
 
 def get_data_dir():
     return appdirs.user_data_dir(appname=pkg_name)
+
+def get_challenge_file_yaml():
+    return "ctfd-challenge.yaml"
