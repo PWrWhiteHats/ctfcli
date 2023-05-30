@@ -23,7 +23,7 @@ def load_challenge(path):
             return Yaml(data=yaml.safe_load(f.read()), file_path=path)
     except FileNotFoundError:
         click.secho(f"No {get_challenge_file_yaml()} was found in {path}", fg="red")
-        return
+        raise FileNotFoundError
 
 
 def load_installed_challenge(challenge_id):
@@ -42,13 +42,13 @@ def sync_challenge(challenge, ignore=[]):
         "category": challenge["category"],
         "description": challenge["description"],
         "type": challenge.get("type", "standard"),
-        "value": int(challenge["value"]) if challenge["value"] else challenge["value"],
+        "value": int(challenge.get("value")) if challenge.get("value") else None, #TODO implement it properly so when no dynamic then it should be required
         **challenge.get("extra", {}),
     }
 
     # Some challenge types (e.g. dynamic) override value.
     # We can't send it to CTFd because we don't know the current value
-    if challenge["value"] is None:
+    if "value" in challenge.keys() and challenge.get("value") is None:
         del challenge["value"]
 
     if challenge.get("attempts") and "attempts" not in ignore:
@@ -220,13 +220,13 @@ def create_challenge(challenge, ignore=[]):
         "category": challenge["category"],
         "description": challenge["description"],
         "type": challenge.get("type", "standard"),
-        "value": int(challenge["value"]) if challenge["value"] else challenge["value"],
+        "value": int(challenge.get("value")) if challenge.get("value") else None,
         **challenge.get("extra", {}),
     }
 
     # Some challenge types (e.g. dynamic) override value.
     # We can't send it to CTFd because we don't know the current value
-    if challenge["value"] is None:
+    if "value" in challenge.keys() and challenge.get("value") is None:
         del challenge["value"]
 
     if challenge.get("attempts") and "attempts" not in ignore:
@@ -278,6 +278,9 @@ def create_challenge(challenge, ignore=[]):
 
     # Upload files
     if challenge.get("files") and "files" not in ignore:
+        click.secho("!!! You should upload your files to the remote host and add them in the description")
+        return
+        # NotImplemented - Wait for plugin for Mega or Dropbox
         files = []
         for f in challenge["files"]:
             file_path = Path(challenge.directory, f)
