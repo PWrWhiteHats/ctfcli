@@ -278,9 +278,6 @@ def create_challenge(challenge, ignore=[]):
 
     # Upload files
     if challenge.get("files") and "files" not in ignore:
-        click.secho("!!! You should upload your files to the remote host and add them in the description")
-        return
-        # NotImplemented - Wait for plugin for Mega or Dropbox
         files = []
         for f in challenge["files"]:
             file_path = Path(challenge.directory, f)
