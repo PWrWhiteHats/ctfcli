@@ -1,13 +1,15 @@
-from pathlib import Path
 import subprocess
+from os.path import basename
+from pathlib import Path
 
 import click
 import yaml
+from urllib3 import encode_multipart_formdata
+
+from ctfcli.utils.templates import get_challenge_file_yaml
 
 from .config import generate_session
 from .tools import strings
-
-from ctfcli.utils.templates import get_challenge_file_yaml
 
 
 class Yaml(dict):
@@ -28,12 +30,22 @@ def load_challenge(path):
 
 def load_installed_challenge(challenge_id):
     s = generate_session()
-    return s.get(f"/api/v1/challenges/{challenge_id}").json()["data"]
+    _headers = s.headers.copy()
+    _headers.update({"Content-Type": "application/json"})
+    return s.get(
+        f"/api/v1/challenges/{challenge_id}",
+        headers=_headers,
+    ).json()["data"]
 
 
 def load_installed_challenges():
     s = generate_session()
-    response = s.get("/api/v1/challenges?view=admin", allow_redirects=True)
+    _headers = s.headers.copy()
+    _headers.update({"Content-Type": "application/json"})
+    response = s.get(
+        "/api/v1/challenges?view=admin",
+        headers=_headers,
+    )
     return response.json()["data"]
 
 
@@ -43,7 +55,9 @@ def sync_challenge(challenge, ignore=[]):
         "category": challenge["category"],
         "description": challenge["description"],
         "type": challenge.get("type", "standard"),
-        "value": int(challenge.get("value")) if challenge.get("value") else None, #TODO implement it properly so when no dynamic then it should be required
+        "value": int(challenge.get("value"))
+        if challenge.get("value")
+        else None,  # TODO implement it properly so when no dynamic then it should be required
         **challenge.get("extra", {}),
     }
 
@@ -72,9 +86,11 @@ def sync_challenge(challenge, ignore=[]):
 
     s = generate_session()
 
-    original_challenge = s.get(f"/api/v1/challenges/{challenge_id}").json()[
-        "data"
-    ]
+    _headers = s.headers.copy()
+    _headers.update({"Content-Type": "application/json"})
+    original_challenge = s.get(
+        f"/api/v1/challenges/{challenge_id}", headers=_headers
+    ).json()["data"]
 
     r = s.patch(f"/api/v1/challenges/{challenge_id}", json=data)
     r.raise_for_status()
@@ -82,7 +98,9 @@ def sync_challenge(challenge, ignore=[]):
     # Create new flags
     if challenge.get("flags") and "flags" not in ignore:
         # Delete existing flags
-        current_flags = s.get(f"/api/v1/flags").json()["data"]
+        _headers = s.headers.copy()
+        _headers.update({"Content-Type": "application/json"})
+        current_flags = s.get(f"/api/v1/flags", headers=_headers).json()["data"]
         for flag in current_flags:
             if flag["challenge_id"] == challenge_id:
                 flag_id = flag["id"]
@@ -101,14 +119,14 @@ def sync_challenge(challenge, ignore=[]):
     # Update topics
     if challenge.get("topics") and "topics" not in ignore:
         # Delete existing challenge topics
+        _headers = s.headers.copy()
+        _headers.update({"Content-Type": "application/json"})
         current_topics = s.get(
-            f"/api/v1/challenges/{challenge_id}/topics", json=""
+            f"/api/v1/challenges/{challenge_id}/topics", headers=_headers
         ).json()["data"]
         for topic in current_topics:
             topic_id = topic["id"]
-            r = s.delete(
-                f"/api/v1/topics?type=challenge&target_id={topic_id}"
-            )
+            r = s.delete(f"/api/v1/topics?type=challenge&target_id={topic_id}")
             r.raise_for_status()
         # Add new challenge topics
         for topic in challenge["topics"]:
@@ -125,7 +143,9 @@ def sync_challenge(challenge, ignore=[]):
     # Update tags
     if challenge.get("tags") and "tags" not in ignore:
         # Delete existing tags
-        current_tags = s.get(f"/api/v1/tags").json()["data"]
+        _headers = s.headers.copy()
+        _headers.update({"Content-Type": "application/json"})
+        current_tags = s.get(f"/api/v1/tags", headers=_headers).json()["data"]
         for tag in current_tags:
             if tag["challenge_id"] == challenge_id:
                 tag_id = tag["id"]
@@ -140,9 +160,11 @@ def sync_challenge(challenge, ignore=[]):
     # Upload files
     if challenge.get("files") and "files" not in ignore:
         # Delete existing files
-        all_current_files = s.get(f"/api/v1/files?type=challenge").json()[
-            "data"
-        ]
+        _headers = s.headers.copy()
+        _headers.update({"Content-Type": "application/json"})
+        all_current_files = s.get(
+            f"/api/v1/files?type=challenge", headers=_headers
+        ).json()["data"]
         for f in all_current_files:
             for used_file in original_challenge["files"]:
                 if f["location"] in used_file:
@@ -153,21 +175,33 @@ def sync_challenge(challenge, ignore=[]):
         for f in challenge["files"]:
             file_path = Path(challenge.directory, f)
             if file_path.exists():
-                file_object = ("file", file_path.open(mode="rb"))
+                file_object = (basename(file_path), file_path.open(mode="rb").read())
                 files.append(file_object)
             else:
                 click.secho(f"File {file_path} was not found", fg="red")
                 raise Exception(f"File {file_path} was not found")
 
-        data = {"challenge_id": challenge_id, "type": "challenge"}
-        # Specifically use data= here instead of json= to send multipart/form-data
-        r = s.post(f"/api/v1/files", files=files, data=data)
-        r.raise_for_status()
+        for file in files:
+            data = {"file": file, "challenge": challenge_id, "type": "challenge"}
+            body, header = encode_multipart_formdata(data)
+            # Specifically use data= here instead of json= to send multipart/form-data
+            # sess_multipart = generate_session(content_type='multipart/form-data')
+            _headers = s.headers.copy()
+            _headers.update({"Content-Type": header})
+            r = s.post(
+                "/api/v1/files",
+                headers=_headers,
+                data=body,
+                allow_redirects=True,
+            )
+            r.raise_for_status()
 
     # Create hints
     if challenge.get("hints") and "hints" not in ignore:
         # Delete existing hints
-        current_hints = s.get(f"/api/v1/hints").json()["data"]
+        _headers = s.headers.copy()
+        _headers.update({"Content-Type": "application/json"})
+        current_hints = s.get(f"/api/v1/hints", headers=_headers).json()["data"]
         for hint in current_hints:
             if hint["challenge_id"] == challenge_id:
                 hint_id = hint["id"]
@@ -283,16 +317,26 @@ def create_challenge(challenge, ignore=[]):
         for f in challenge["files"]:
             file_path = Path(challenge.directory, f)
             if file_path.exists():
-                file_object = ("file", file_path.open(mode="rb"))
+                file_object = (basename(file_path), file_path.open(mode="rb").read())
                 files.append(file_object)
             else:
                 click.secho(f"File {file_path} was not found", fg="red")
                 raise Exception(f"File {file_path} was not found")
 
-        data = {"challenge_id": challenge_id, "type": "challenge"}
-        # Specifically use data= here instead of json= to send multipart/form-data
-        r = s.post(f"/api/v1/files", files=files, data=data)
-        r.raise_for_status()
+        for file in files:
+            data = {"file": file, "challenge": challenge_id, "type": "challenge"}
+            body, header = encode_multipart_formdata(data)
+            # Specifically use data= here instead of json= to send multipart/form-data
+            # sess_multipart = generate_session(content_type='multipart/form-data')
+            _headers = s.headers.copy()
+            _headers.update({"Content-Type": header})
+            r = s.post(
+                "/api/v1/files",
+                headers=_headers,
+                data=body,
+                allow_redirects=True,
+            )
+            r.raise_for_status()
 
     # Add hints
     if challenge.get("hints") and "hints" not in ignore:

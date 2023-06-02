@@ -79,8 +79,6 @@ def generate_session():
 
     s = APISession(prefix_url=url)
     s.verify = ssl_verify
-    headers = {
-        "Authorization": f"Token {access_token}", "Content-Type": "application/json"
-    }
+    headers = {"Authorization": f"Token {access_token}"}
     s.headers.update(headers)
     return s
